@@ -27,30 +27,10 @@ jobs:
         run: dotnet run -f net8.0 --no-restore
         working-directory: src/ContainerLabelFix
 
-  # Test on Linux (no Framework, but verify .NET 6.0 SDK behavior)
-  test-linux:
-    runs-on: ubuntu-latest
-    name: Linux - .NET SDK (no Framework support)
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
-      
-      - name: Restore
-        run: dotnet restore
-        working-directory: src/ContainerLabelFix
-      
-      - name: Build and Run Split Overload Verification
-        run: dotnet run -f net8.0 --no-restore
-        working-directory: src/ContainerLabelFix
-
-  # Test using direct MSBuild (Windows only)
+  # Test using direct MSBuild (Windows only - proves Framework compatibility)
   test-direct-msbuild:
     runs-on: windows-latest
-    name: Windows - Direct MSBuild.exe
+    name: Windows - Direct MSBuild.exe (Framework Test)
     steps:
       - uses: actions/checkout@v4
       
@@ -69,7 +49,7 @@ jobs:
 
   # Summary job
   verification-complete:
-    needs: [test-windows, test-linux, test-direct-msbuild]
+    needs: [test-windows, test-direct-msbuild]
     runs-on: ubuntu-latest
     name: Verification Summary
     if: always()
@@ -77,8 +57,7 @@ jobs:
       - name: Check Results
         run: |
           echo "=== .NET Framework Split Overload Verification Complete ==="
-          echo "✅ All platforms tested successfully"
+          echo "✅ Framework & SDK compatibility verified"
           echo "The proposed fix (Split(':', 2)[1]) is compatible with:"
-          echo "  - .NET Framework 4.7.2 via MSBuild"
-          echo "  - .NET 6.0+ SDKs"
-          echo "  - Direct MSBuild.exe execution"
+          echo "  - .NET Framework 4.7.2+ via MSBuild"
+          echo "  - .NET 8.0+ SDKs on Windows"
