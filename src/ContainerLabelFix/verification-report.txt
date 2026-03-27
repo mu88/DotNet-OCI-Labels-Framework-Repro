@@ -1,0 +1,55 @@
+╔══════════════════════════════════════════════════════════════╗
+║  .NET Framework Split Overload Verification                  ║
+║  Issue: https://github.com/dotnet/sdk/issues/52732           ║
+╚══════════════════════════════════════════════════════════════╝
+
+═══ TEST 1: BROKEN BEHAVIOR (Original Code) ═══
+
+Input:    org.opencontainers.image.documentation:https://github.com/mu88/RaspiFanController/blob/main/README.md
+Expected: https (broken - only gets protocol)
+Got:      https
+Result:   ✗ BROKEN (as expected - demonstrates the bug)
+
+Input:    org.opencontainers.image.url:https://example.com/my-project
+Expected: https (broken - only gets protocol)
+Got:      https
+Result:   ✗ BROKEN (as expected - demonstrates the bug)
+
+Input:    com.docker.extension.changelog:https://github.com/mu88/RaspiFanController/releases
+Expected: https (broken - only gets protocol)
+Got:      https
+Result:   ✗ BROKEN (as expected - demonstrates the bug)
+
+
+═══ TEST 2: FIXED BEHAVIOR (with Split Overload) ═══
+
+Input:    org.opencontainers.image.documentation:https://github.com/mu88/RaspiFanController/blob/main/README.md
+Expected: https://github.com/mu88/RaspiFanController/blob/main/README.md
+Got:      https://github.com/mu88/RaspiFanController/blob/main/README.md
+Result:   ✓ FIXED (full URL properly extracted!)
+
+Input:    org.opencontainers.image.url:https://example.com/my-project
+Expected: https://example.com/my-project
+Got:      https://example.com/my-project
+Result:   ✓ FIXED (full URL properly extracted!)
+
+Input:    com.docker.extension.changelog:https://github.com/mu88/RaspiFanController/releases
+Expected: https://github.com/mu88/RaspiFanController/releases
+Got:      https://github.com/mu88/RaspiFanController/releases
+Result:   ✓ FIXED (full URL properly extracted!)
+
+
+╔══════════════════════════════════════════════════════════════╗
+║ VERIFICATION SUMMARY                                         ║
+╠══════════════════════════════════════════════════════════════╣
+║ Total Tests:  6                                        ║
+║ Passed:       6  ✓                                       ║
+║ Failed:       0  ✗                                       ║
+╠══════════════════════════════════════════════════════════════╣
+║ ✅ VERIFICATION SUCCESSFUL                                  ║
+║                                                              ║
+║ The Split(':', 2) overload is available and works correctly║
+║ on this .NET / MSBuild version.                            ║
+║                                                              ║
+║ Framework Compatibility: ✅ VERIFIED                         ║
+╚══════════════════════════════════════════════════════════════╝

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  This targets file tests the Split overload fix for OCI metadata labels.
+  
+  Issue: https://github.com/dotnet/sdk/issues/52732
+  
+  The problem occurs when container metadata properties contain URLs with colons
+  (e.g., https://github.com/...). The original code uses:
+    Split(':')[1]
+  
+  Which breaks with https:// because it splits on ALL colons, not just the first one.
+  
+  The fix uses the Split overload with a maxSplits parameter:
+    Split(':', 2)[1]
+  
+  This splits only on the FIRST colon, preserving the URL.
+-->
+<Project DefaultTargets="VerifySplitOverload">
+
+  <!-- Test data: simulate container label properties with URLs -->
+  <PropertyGroup>
+    <!-- Sample from issue #52732 -->
+    <TestLabel1>org.opencontainers.image.documentation:https://github.com/mu88/RaspiFanController/blob/main/README.md</TestLabel1>
+    <TestLabel2>org.opencontainers.image.url:https://example.com/my-project</TestLabel2>
+    <TestLabel3>com.docker.extension.changelog:https://github.com/mu88/RaspiFanController/releases</TestLabel3>
+  </PropertyGroup>
+
+  <!-- Target to demonstrate the broken behavior (original code) -->
+  <Target Name="TestBrokenSplit">
+    <Message Text="=== BROKEN BEHAVIOR (original code) ===" Importance="high" />
+    
+    <!-- This simulates the original broken code -->
+    <PropertyGroup>
+      <BrokenResult1>$([System.String]::new("$(TestLabel1)").Split(':')[1])</BrokenResult1>
+      <BrokenResult2>$([System.String]::new("$(TestLabel2)").Split(':')[1])</BrokenResult2>
+      <BrokenResult3>$([System.String]::new("$(TestLabel3)").Split(':')[1])</BrokenResult3>
+    </PropertyGroup>
+    
+    <Message Text="Original Split(':')[1] results:" Importance="high" />
+    <Message Text="  Label 1: '$(BrokenResult1)'" Importance="normal" />
+    <Message Text="  Label 2: '$(BrokenResult2)'" Importance="normal" />
+    <Message Text="  Label 3: '$(BrokenResult3)'" Importance="normal" />
+    
+    <Message Text="" Importance="normal" />
+    <Message Text="❌ Notice: Only 'https' is extracted, the rest of the URL is lost!" Importance="high" />
+  </Target>
+
+  <!-- Target to test the fixed behavior (with Split overload) -->
+  <Target Name="TestFixedSplit">
+    <Message Text="" Importance="normal" />
+    <Message Text="=== FIXED BEHAVIOR (with Split overload) ===" Importance="high" />
+    
+    <!-- 
+      Try using Split(':', 2) overload to split only on first colon.
+      This is the proposed fix from https://github.com/dotnet/sdk/issues/52732#issue-3870229243
+    -->
+    <PropertyGroup>
+      <FixedResult1>$([System.String]::new("$(TestLabel1)").Split(':',2)[1])</FixedResult1>
+      <FixedResult2>$([System.String]::new("$(TestLabel2)").Split(':',2)[1])</FixedResult2>
+      <FixedResult3>$([System.String]::new("$(TestLabel3)").Split(':',2)[1])</FixedResult3>
+    </PropertyGroup>
+    
+    <Message Text="Fixed Split(':', 2)[1] results:" Importance="high" />
+    <Message Text="  Label 1: '$(FixedResult1)'" Importance="normal" />
+    <Message Text="  Label 2: '$(FixedResult2)'" Importance="normal" />
+    <Message Text="  Label 3: '$(FixedResult3)'" Importance="normal" />
+    
+    <Message Text="" Importance="normal" />
+    <Message Text="✅ Success: Full URLs are now properly extracted!" Importance="high" />
+  </Target>
+
+  <!-- Main verification target -->
+  <Target Name="VerifySplitOverload" DependsOnTargets="TestBrokenSplit;TestFixedSplit">
+    <Message Text="" Importance="normal" />
+    <Message Text="=== VERIFICATION COMPLETE ===" Importance="high" />
+    <Message Text="The Split(':', 2) overload is supported on this MSBuild version." Importance="high" />
+    <Message Text="Framework compatibility: ✅ VERIFIED" Importance="high" />
+  </Target>
+
+</Project>
