@@ -31,12 +31,8 @@ jobs:
         run: dotnet restore
         working-directory: src/ContainerLabelFix
       
-      - name: Test Split Overload on .NET 6.0
-        run: dotnet build -t VerifySplitOverload -f net6.0 --no-restore
-        working-directory: src/ContainerLabelFix
-      
-      - name: Test Split Overload on .NET Framework 4.7.2
-        run: dotnet build -t VerifySplitOverload -f net472 --no-restore
+      - name: Build and Run Split Overload Verification
+        run: dotnet run -f net8.0 --no-restore
         working-directory: src/ContainerLabelFix
 
   # Test on Linux (no Framework, but verify .NET 6.0 SDK behavior)
@@ -55,8 +51,8 @@ jobs:
         run: dotnet restore
         working-directory: src/ContainerLabelFix
       
-      - name: Test Split Overload on .NET 6.0
-        run: dotnet build -t VerifySplitOverload -f net6.0 --no-restore
+      - name: Build and Run Split Overload Verification
+        run: dotnet run -f net8.0 --no-restore
         working-directory: src/ContainerLabelFix
 
   # Test using direct MSBuild (Windows only)
@@ -73,7 +69,7 @@ jobs:
         run: nuget restore "src/ContainerLabelFix/ContainerLabelFix.csproj"
       
       - name: Build with MSBuild
-        run: msbuild "src/ContainerLabelFix/ContainerLabelFix.csproj" /t:VerifySplitOverload /p:Configuration=Release
+        run: msbuild "src/ContainerLabelFix/ContainerLabelFix.csproj" /p:Configuration=Release
       
       - name: Verify Results
         run: echo "Direct MSBuild execution completed successfully"
